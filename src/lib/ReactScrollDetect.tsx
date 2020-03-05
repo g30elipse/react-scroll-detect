@@ -1,13 +1,14 @@
 import React, { FC, useEffect, useState, useContext } from 'react';
-import { TSectionEntry, ReactScrollDetectContextProviderValue, ReactScrollDetectContext } from './context';
+import { TSectionEntry, ReactScrollDetectContextProviderValue, ReactScrollDetectContext, TriggerPoint } from './context';
 export interface ReactScrollDetectProps {
     onChange?: (index: number) => void
     index?: number
+    triggerPoint?: TriggerPoint
 }
 
 
 const ReactScrollDetect: FC<ReactScrollDetectProps> = (props) => {
-    const { onChange = () => { }, index = 0 } = props;
+    const { onChange = () => { }, index = 0, triggerPoint = 'center' } = props;
     const [sections, setSections] = useState<TSectionEntry[]>([])
 
     const addSection = (section: TSectionEntry) => setSections(sections => [...sections, section])
@@ -16,7 +17,8 @@ const ReactScrollDetect: FC<ReactScrollDetectProps> = (props) => {
         onChange,
         addSection,
         sections,
-        index
+        index,
+        triggerPoint
     }
     return (
         <ReactScrollDetectContext.Provider value={providerValue}>
@@ -27,10 +29,14 @@ const ReactScrollDetect: FC<ReactScrollDetectProps> = (props) => {
     )
 }
 
+const WINDOW_HEIGHT = window.innerHeight;
+
+
 const _ScrollContainer: FC = (props) => {
-    const { sections, onChange, index } = useContext(ReactScrollDetectContext);
+    const { sections, onChange, index, triggerPoint } = useContext(ReactScrollDetectContext);
     const [sectionEntryPoints, setSectionEntryPoints] = useState<number[]>([])
     const [currentIndex, setCurrentIndex] = useState(0);
+    const TRIGGER_CONST = triggerPoint === 'center' ? WINDOW_HEIGHT / 2 : triggerPoint === 'top' ? 0 : WINDOW_HEIGHT
 
     useEffect(() => {
         initializeEntryPoints()
@@ -64,7 +70,8 @@ const _ScrollContainer: FC = (props) => {
 
 
     const onWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-        const newIndex = findIndex(e.pageY);
+        const top = (e.pageY - e.clientY) + (TRIGGER_CONST)
+        const newIndex = findIndex(top);
         if (newIndex !== currentIndex) {
             setCurrentIndex(newIndex);
             onChange(newIndex)

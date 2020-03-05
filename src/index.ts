@@ -1,4 +1,4 @@
 export { default } from './lib/ReactScrollDetect';
-export * from './lib/types';
+export * from './lib/ReactScrollDetect';
 export * from './lib/DetectSection';
 

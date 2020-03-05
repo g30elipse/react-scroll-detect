@@ -1,6 +1,9 @@
 import React, { FC, useEffect, useState, useContext } from 'react';
-import { ReactScrollDetectProps } from './types';
 import { TSectionEntry, ReactScrollDetectContextProviderValue, ReactScrollDetectContext } from './context';
+export interface ReactScrollDetectProps {
+    onChange?: (index: number) => void
+    index?: number
+}
 
 
 const ReactScrollDetect: FC<ReactScrollDetectProps> = (props) => {

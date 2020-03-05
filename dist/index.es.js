@@ -27,26 +27,30 @@ var ReactScrollDetectContext = createContext({
     onChange: function (_) { },
     addSection: function (_) { },
     sections: [],
-    index: 0
+    index: 0,
+    triggerPoint: 'center'
 });
 
 var ReactScrollDetect = function (props) {
-    var _a = props.onChange, onChange = _a === void 0 ? function () { } : _a, _b = props.index, index = _b === void 0 ? 0 : _b;
-    var _c = useState([]), sections = _c[0], setSections = _c[1];
+    var _a = props.onChange, onChange = _a === void 0 ? function () { } : _a, _b = props.index, index = _b === void 0 ? 0 : _b, _c = props.triggerPoint, triggerPoint = _c === void 0 ? 'center' : _c;
+    var _d = useState([]), sections = _d[0], setSections = _d[1];
     var addSection = function (section) { return setSections(function (sections) { return __spreadArrays(sections, [section]); }); };
     var providerValue = {
         onChange: onChange,
         addSection: addSection,
         sections: sections,
-        index: index
+        index: index,
+        triggerPoint: triggerPoint
     };
     return (React.createElement(ReactScrollDetectContext.Provider, { value: providerValue },
         React.createElement(_ScrollContainer, null, props.children)));
 };
+var WINDOW_HEIGHT = window.innerHeight;
 var _ScrollContainer = function (props) {
-    var _a = useContext(ReactScrollDetectContext), sections = _a.sections, onChange = _a.onChange, index = _a.index;
+    var _a = useContext(ReactScrollDetectContext), sections = _a.sections, onChange = _a.onChange, index = _a.index, triggerPoint = _a.triggerPoint;
     var _b = useState([]), sectionEntryPoints = _b[0], setSectionEntryPoints = _b[1];
     var _c = useState(0), currentIndex = _c[0], setCurrentIndex = _c[1];
+    var TRIGGER_CONST = triggerPoint === 'center' ? WINDOW_HEIGHT / 2 : triggerPoint === 'top' ? 0 : WINDOW_HEIGHT;
     useEffect(function () {
         initializeEntryPoints();
     }, [sections]);
@@ -71,7 +75,8 @@ var _ScrollContainer = function (props) {
         return _index;
     };
     var onWheel = function (e) {
-        var newIndex = findIndex(e.pageY);
+        var top = (e.pageY - e.clientY) + (TRIGGER_CONST);
+        var newIndex = findIndex(top);
         if (newIndex !== currentIndex) {
             setCurrentIndex(newIndex);
             onChange(newIndex);

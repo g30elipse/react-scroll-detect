@@ -21,6 +21,7 @@ This is a wrapper component for your scrollable component. Wrap your component w
 | props    | signature               | required       | description |
 |------    | --------------         | ----           | ----------- |
 | onChange | (index: number) => void | false           | Function which is exectuted when a new section enters the viewport |
+| triggerPoint | 'center', 'top', 'bottom | false           | Trigger point for DetectSection (default: center) |
 | index    | number                  | false           | This spectifies which section(index) the needs to be scrolled to the viewport. Default value: 0 (note: this is an experimental feature)  |
 
 
@@ -30,7 +31,7 @@ import ReactScrollDetect, { DetectSection } from 'react-scroll-detect';
 ```
 
 ```jsx
-<ReactScrollDetect onChange={handleSectionChange}>
+<ReactScrollDetect triggerPoint='center' onChange={handleSectionChange}>
   <DetectSection>
     <div style={{height: 500}}/>
   </DetectSection>

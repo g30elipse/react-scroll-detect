@@ -24,6 +24,7 @@ This is a wrapper component for your scrollable component. Wrap your component w
 | triggerPoint | 'center', 'top', 'bottom | false           | Trigger point for DetectSection (default: center) |
 | index    | number                  | false           | This spectifies which section(index) the needs to be scrolled to the viewport. Default value: 0 (note: this is an experimental feature)  |
 
+[Codesandbox demo](https://codesandbox.io/s/inspiring-goldwasser-5k13y?fontsize=14&hidenavigation=1&theme=dark)
 
 #### Example
 ```typescript

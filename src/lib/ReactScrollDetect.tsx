@@ -44,6 +44,10 @@ const _ScrollContainer: FC = (props) => {
 
 
     useEffect(() => {
+        if (index !== currentIndex) {
+            setCurrentIndex(index)
+            onChange(index)
+        }
         window.scrollTo({ top: sectionEntryPoints[index] || 0, behavior: 'smooth' })
     }, [index])
 

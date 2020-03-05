@@ -1,7 +1,7 @@
 {
-  "name": "react-library-boilerplate",
+  "name": "react-scroll-detect",
   "version": "1.0.0",
-  "description": "Boilerplate for creating react npm packages in typescript",
+  "description": "Scroll detect component",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "jsnext:main": "dist/index.es.js",

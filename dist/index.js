@@ -22,6 +22,17 @@ See the Apache Version 2.0 License for specific language governing permissions
 and limitations under the License.
 ***************************************************************************** */
 
+var __assign = function() {
+    __assign = Object.assign || function __assign(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+
 function __spreadArrays() {
     for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
     for (var r = Array(s), k = 0, i = 0; i < il; i++)
@@ -41,13 +52,16 @@ var ReactScrollDetectContext = React.createContext({
 var ReactScrollDetect = function (props) {
     var _a = props.onChange, onChange = _a === void 0 ? function () { } : _a, _b = props.index, index = _b === void 0 ? 0 : _b, _c = props.triggerPoint, triggerPoint = _c === void 0 ? 'center' : _c;
     var _d = React.useState([]), sections = _d[0], setSections = _d[1];
-    var addSection = function (section) { return setSections(function (sections) { return __spreadArrays(sections, [section]); }); };
+    var numSections = 0;
+    var addSection = function (section) {
+        setSections(function (sections) { return __spreadArrays(sections, [__assign(__assign({}, section), { index: numSections++ })]); });
+    };
     var providerValue = {
         onChange: onChange,
         addSection: addSection,
         sections: sections,
         index: index,
-        triggerPoint: triggerPoint
+        triggerPoint: triggerPoint,
     };
     return (React__default.createElement(ReactScrollDetectContext.Provider, { value: providerValue },
         React__default.createElement(_ScrollContainer, null, props.children)));
@@ -62,11 +76,18 @@ var _ScrollContainer = function (props) {
         initializeEntryPoints();
     }, [sections]);
     React.useEffect(function () {
+        if (index !== currentIndex) {
+            setCurrentIndex(index);
+            onChange(index);
+        }
         window.scrollTo({ top: sectionEntryPoints[index] || 0, behavior: 'smooth' });
     }, [index]);
     var initializeEntryPoints = function () {
         var _sectionEntryPoints = [];
-        var prev = 0;
+        if (sections.length === 0)
+            return;
+        // console.log("first section height", sections[0].ref.offsetTop, sections[0].ref)
+        var prev = sections[0].ref.offsetTop;
         sections.forEach(function (section) {
             _sectionEntryPoints.push(prev);
             prev = prev + section.height;
@@ -92,16 +113,15 @@ var _ScrollContainer = function (props) {
     return (React__default.createElement("div", { onWheel: onWheel }, props.children));
 };
 
-var INDEX = 0;
 var DetectSection = function (props) {
     var ref = React.useRef(null);
     var addSection = React.useContext(ReactScrollDetectContext).addSection;
-    var index = INDEX++;
     React.useEffect(function () {
-        var _a;
-        var height = ((_a = ref.current) === null || _a === void 0 ? void 0 : _a.clientHeight) || 0;
-        addSection({ index: index, height: height });
-    }, []);
+        if (!ref.current)
+            return;
+        var height = ref.current.clientHeight || 0;
+        addSection({ height: height, ref: ref.current });
+    }, [ref]);
     return (React__default.createElement("div", { ref: ref }, props.children));
 };
 

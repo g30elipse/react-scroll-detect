@@ -5,14 +5,15 @@ export type TriggerPoint = 'center' | 'top' | 'bottom'
 
 
 export type TSectionEntry = {
-    height: number, index: number
+    height: number, index: number, ref: HTMLDivElement
 }
 export type ReactScrollDetectContextProviderValue = {
     onChange: (index: number) => void
-    addSection: (section: TSectionEntry) => void
+    addSection: (section: Omit<TSectionEntry, 'index'>) => void
     sections: TSectionEntry[]
     triggerPoint: TriggerPoint
     index: number
+    offset: number
 }
 
 export const ReactScrollDetectContext = createContext<ReactScrollDetectContextProviderValue>({
@@ -20,5 +21,6 @@ export const ReactScrollDetectContext = createContext<ReactScrollDetectContextPr
     addSection: (_) => { },
     sections: [],
     index: 0,
-    triggerPoint: 'center'
+    triggerPoint: 'center',
+    offset: 0
 });

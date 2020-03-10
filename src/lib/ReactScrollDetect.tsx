@@ -3,22 +3,29 @@ import { TSectionEntry, ReactScrollDetectContextProviderValue, ReactScrollDetect
 export interface ReactScrollDetectProps {
     onChange?: (index: number) => void
     index?: number
+    offset?: number
     triggerPoint?: TriggerPoint
 }
 
 
 const ReactScrollDetect: FC<ReactScrollDetectProps> = (props) => {
-    const { onChange = () => { }, index = 0, triggerPoint = 'center' } = props;
+    const { onChange = () => { }, index = 0, triggerPoint = 'center', offset = 0 } = props;
     const [sections, setSections] = useState<TSectionEntry[]>([])
+    let numSections = 0;
 
-    const addSection = (section: TSectionEntry) => setSections(sections => [...sections, section])
+    const addSection = (section: Omit<TSectionEntry, 'index'>) => {
+        setSections(sections => [...sections, { ...section, index: numSections++ }])
+    }
+
+
 
     const providerValue: ReactScrollDetectContextProviderValue = {
         onChange,
         addSection,
         sections,
         index,
-        triggerPoint
+        triggerPoint,
+        offset
     }
     return (
         <ReactScrollDetectContext.Provider value={providerValue}>
@@ -33,10 +40,11 @@ const WINDOW_HEIGHT = window.innerHeight;
 
 
 const _ScrollContainer: FC = (props) => {
-    const { sections, onChange, index, triggerPoint } = useContext(ReactScrollDetectContext);
+    const { sections, onChange, index, triggerPoint, offset = 0 } = useContext(ReactScrollDetectContext);
     const [sectionEntryPoints, setSectionEntryPoints] = useState<number[]>([])
     const [currentIndex, setCurrentIndex] = useState(0);
     const TRIGGER_CONST = triggerPoint === 'center' ? WINDOW_HEIGHT / 2 : triggerPoint === 'top' ? 0 : WINDOW_HEIGHT
+
 
     useEffect(() => {
         initializeEntryPoints()
@@ -48,14 +56,16 @@ const _ScrollContainer: FC = (props) => {
             setCurrentIndex(index)
             onChange(index)
         }
-        window.scrollTo({ top: sectionEntryPoints[index] || 0, behavior: 'smooth' })
+        window.scrollTo({ top: (sectionEntryPoints[index] || 0) + offset, behavior: 'smooth' })
     }, [index])
 
 
 
     const initializeEntryPoints = () => {
         const _sectionEntryPoints: number[] = [];
-        let prev = 0;
+        if (sections.length === 0) return;
+        // console.log("first section height", sections[0].ref.offsetTop, sections[0].ref)
+        let prev = sections[0].ref.offsetTop;
         sections.forEach(section => {
             _sectionEntryPoints.push(prev);
             prev = prev + section.height;

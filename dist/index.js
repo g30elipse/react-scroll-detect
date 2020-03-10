@@ -46,12 +46,13 @@ var ReactScrollDetectContext = React.createContext({
     addSection: function (_) { },
     sections: [],
     index: 0,
-    triggerPoint: 'center'
+    triggerPoint: 'center',
+    offset: 0
 });
 
 var ReactScrollDetect = function (props) {
-    var _a = props.onChange, onChange = _a === void 0 ? function () { } : _a, _b = props.index, index = _b === void 0 ? 0 : _b, _c = props.triggerPoint, triggerPoint = _c === void 0 ? 'center' : _c;
-    var _d = React.useState([]), sections = _d[0], setSections = _d[1];
+    var _a = props.onChange, onChange = _a === void 0 ? function () { } : _a, _b = props.index, index = _b === void 0 ? 0 : _b, _c = props.triggerPoint, triggerPoint = _c === void 0 ? 'center' : _c, _d = props.offset, offset = _d === void 0 ? 0 : _d;
+    var _e = React.useState([]), sections = _e[0], setSections = _e[1];
     var numSections = 0;
     var addSection = function (section) {
         setSections(function (sections) { return __spreadArrays(sections, [__assign(__assign({}, section), { index: numSections++ })]); });
@@ -62,15 +63,16 @@ var ReactScrollDetect = function (props) {
         sections: sections,
         index: index,
         triggerPoint: triggerPoint,
+        offset: offset
     };
     return (React__default.createElement(ReactScrollDetectContext.Provider, { value: providerValue },
         React__default.createElement(_ScrollContainer, null, props.children)));
 };
 var WINDOW_HEIGHT = window.innerHeight;
 var _ScrollContainer = function (props) {
-    var _a = React.useContext(ReactScrollDetectContext), sections = _a.sections, onChange = _a.onChange, index = _a.index, triggerPoint = _a.triggerPoint;
-    var _b = React.useState([]), sectionEntryPoints = _b[0], setSectionEntryPoints = _b[1];
-    var _c = React.useState(0), currentIndex = _c[0], setCurrentIndex = _c[1];
+    var _a = React.useContext(ReactScrollDetectContext), sections = _a.sections, onChange = _a.onChange, index = _a.index, triggerPoint = _a.triggerPoint, _b = _a.offset, offset = _b === void 0 ? 0 : _b;
+    var _c = React.useState([]), sectionEntryPoints = _c[0], setSectionEntryPoints = _c[1];
+    var _d = React.useState(0), currentIndex = _d[0], setCurrentIndex = _d[1];
     var TRIGGER_CONST = triggerPoint === 'center' ? WINDOW_HEIGHT / 2 : triggerPoint === 'top' ? 0 : WINDOW_HEIGHT;
     React.useEffect(function () {
         initializeEntryPoints();
@@ -80,7 +82,7 @@ var _ScrollContainer = function (props) {
             setCurrentIndex(index);
             onChange(index);
         }
-        window.scrollTo({ top: sectionEntryPoints[index] || 0, behavior: 'smooth' });
+        window.scrollTo({ top: (sectionEntryPoints[index] || 0) - offset, behavior: 'smooth' });
     }, [index]);
     var initializeEntryPoints = function () {
         var _sectionEntryPoints = [];

@@ -56,7 +56,7 @@ const _ScrollContainer: FC = (props) => {
             setCurrentIndex(index)
             onChange(index)
         }
-        window.scrollTo({ top: (sectionEntryPoints[index] || 0) + offset, behavior: 'smooth' })
+        window.scrollTo({ top: (sectionEntryPoints[index] || 0) - offset, behavior: 'smooth' })
     }, [index])
 
 

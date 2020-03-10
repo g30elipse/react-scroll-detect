@@ -11,5 +11,6 @@ export declare type ReactScrollDetectContextProviderValue = {
     sections: TSectionEntry[];
     triggerPoint: TriggerPoint;
     index: number;
+    offset: number;
 };
 export declare const ReactScrollDetectContext: import("react").Context<ReactScrollDetectContextProviderValue>;

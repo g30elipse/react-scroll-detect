@@ -1,49 +1,65 @@
 {
   "name": "react-scroll-detect",
-  "version": "1.2.0",
-  "description": "Scroll detect component",
+  "version": "2.0.0",
+  "description": "Tiny React components that tell you which section is in the viewport as the user scrolls.",
   "main": "dist/index.js",
-  "module": "dist/index.es.js",
-  "jsnext:main": "dist/index.es.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "sideEffects": false,
   "keywords": [
     "react",
     "scroll",
     "scroll detect",
-    "react scroll"
+    "scrollspy",
+    "react scroll",
+    "intersection",
+    "viewport"
   ],
   "scripts": {
-    "build": "rm -rf dist/ && rollup -c",
-    "test": "jest"
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean --target es2018",
+    "test": "vitest run --environment jsdom",
+    "test:watch": "vitest --environment jsdom",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/g30elipse/react-scroll-detect.git"
+  },
+  "homepage": "https://github.com/g30elipse/react-scroll-detect#readme",
+  "bugs": {
+    "url": "https://github.com/g30elipse/react-scroll-detect/issues"
+  },
   "author": "Mukut Brahma",
   "license": "ISC",
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node"
-  },
   "peerDependencies": {
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0"
+    "react": ">=16.8.0"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.25",
-    "@types/react": "^16.9.17",
-    "@types/react-dom": "^16.9.4",
-    "@types/react-test-renderer": "^16.9.1",
-    "jest": "^24.9.0",
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0",
-    "react-scripts-ts": "^3.1.0",
-    "react-test-renderer": "^16.12.0",
-    "rollup": "^1.27.14",
-    "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-peer-deps-external": "^2.2.0",
-    "rollup-plugin-typescript2": "^0.25.3",
-    "ts-jest": "^24.2.0",
-    "typescript": "^3.7.4"
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.1.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "jsdom": "^25.0.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   }
 }

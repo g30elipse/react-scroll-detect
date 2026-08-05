@@ -1,103 +1,93 @@
-import React, { FC, useEffect, useState, useContext } from 'react';
-import { TSectionEntry, ReactScrollDetectContextProviderValue, ReactScrollDetectContext, TriggerPoint } from './context';
+import React, { FC, useCallback, useEffect, useMemo, useRef } from 'react';
+import { ScrollDetectContext, ScrollDetectContextValue, TriggerPoint } from './context';
+
 export interface ReactScrollDetectProps {
-    onChange?: (index: number) => void
-    index?: number
-    offset?: number
-    triggerPoint?: TriggerPoint
+    /** Called with the index of the section currently under the trigger point. */
+    onChange?: (index: number) => void;
+    /** Scrolls the section at this index into view whenever the value changes. */
+    index?: number;
+    /** Pixels of space left above the section when scrolling to it via `index`. */
+    offset?: number;
+    /** Where the detection line sits in the viewport. Defaults to `'center'`. */
+    triggerPoint?: TriggerPoint;
+    children?: React.ReactNode;
 }
 
+/** Distance from the top of the viewport to the detection line, in pixels. */
+const triggerLine = (triggerPoint: TriggerPoint) =>
+    triggerPoint === 'top' ? 0 : triggerPoint === 'bottom' ? window.innerHeight : window.innerHeight / 2;
+
+const inDocumentOrder = (a: HTMLElement, b: HTMLElement) =>
+    a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
 
 const ReactScrollDetect: FC<ReactScrollDetectProps> = (props) => {
-    const { onChange = () => { }, index = 0, triggerPoint = 'center', offset = 0 } = props;
-    const [sections, setSections] = useState<TSectionEntry[]>([])
-    let numSections = 0;
+    const { onChange, index, offset = 0, triggerPoint = 'center', children } = props;
 
-    const addSection = (section: Omit<TSectionEntry, 'index'>) => {
-        setSections(sections => [...sections, { ...section, index: numSections++ }])
-    }
-
-
-
-    const providerValue: ReactScrollDetectContextProviderValue = {
-        onChange,
-        addSection,
-        sections,
-        index,
-        triggerPoint,
-        offset
-    }
-    return (
-        <ReactScrollDetectContext.Provider value={providerValue}>
-            <_ScrollContainer>
-                {props.children}
-            </_ScrollContainer>
-        </ReactScrollDetectContext.Provider>
-    )
-}
-
-const WINDOW_HEIGHT = window.innerHeight;
-
-
-const _ScrollContainer: FC = (props) => {
-    const { sections, onChange, index, triggerPoint, offset = 0 } = useContext(ReactScrollDetectContext);
-    const [sectionEntryPoints, setSectionEntryPoints] = useState<number[]>([])
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const TRIGGER_CONST = triggerPoint === 'center' ? WINDOW_HEIGHT / 2 : triggerPoint === 'top' ? 0 : WINDOW_HEIGHT
-
+    const sections = useRef<HTMLElement[]>([]);
+    const activeIndex = useRef(0);
+    const onChangeRef = useRef(onChange);
 
     useEffect(() => {
-        initializeEntryPoints()
-    }, [sections])
+        onChangeRef.current = onChange;
+    });
 
+    const register = useCallback((element: HTMLElement) => {
+        sections.current = [...sections.current, element].sort(inDocumentOrder);
+        return () => {
+            sections.current = sections.current.filter((section) => section !== element);
+        };
+    }, []);
 
     useEffect(() => {
-        if (index !== currentIndex) {
-            setCurrentIndex(index)
-            onChange(index)
-        }
-        window.scrollTo({ top: (sectionEntryPoints[index] || 0) - offset, behavior: 'smooth' })
-    }, [index])
+        let frame: number | null = null;
 
+        // The active section is the last one whose top edge has crossed the trigger line.
+        // Rects are read live so layout changes need no invalidation.
+        const detect = () => {
+            frame = null;
+            const line = triggerLine(triggerPoint);
+            let next = 0;
+            sections.current.forEach((element, i) => {
+                if (element.getBoundingClientRect().top <= line) next = i;
+            });
+            if (next !== activeIndex.current) {
+                activeIndex.current = next;
+                if (onChangeRef.current) onChangeRef.current(next);
+            }
+        };
 
+        const schedule = () => {
+            if (frame === null) frame = requestAnimationFrame(detect);
+        };
 
-    const initializeEntryPoints = () => {
-        const _sectionEntryPoints: number[] = [];
-        if (sections.length === 0) return;
-        // console.log("first section height", sections[0].ref.offsetTop, sections[0].ref)
-        let prev = sections[0].ref.offsetTop;
-        sections.forEach(section => {
-            _sectionEntryPoints.push(prev);
-            prev = prev + section.height;
-        })
-        setSectionEntryPoints(_sectionEntryPoints)
-    }
+        // Children register during their own effects, which run before this one.
+        detect();
 
-    const findIndex = (posTop: number) => {
-        let _index = 0;
-        sectionEntryPoints.forEach((p, i) => {
-            if (posTop > p && posTop < (sectionEntryPoints[i + 1] || 99999))
-                _index = i;
-        })
-        return _index;
-    }
+        window.addEventListener('scroll', schedule, { passive: true });
+        window.addEventListener('resize', schedule, { passive: true });
+        return () => {
+            if (frame !== null) cancelAnimationFrame(frame);
+            window.removeEventListener('scroll', schedule);
+            window.removeEventListener('resize', schedule);
+        };
+        // ponytail: layout shifts with no scroll or resize (late-loading images) are
+        // missed until the next scroll. Add a ResizeObserver if that shows up in practice.
+    }, [triggerPoint]);
 
+    useEffect(() => {
+        if (index === undefined) return;
+        const element = sections.current[index];
+        if (!element) return;
+        window.scrollTo({
+            top: element.getBoundingClientRect().top + window.scrollY - offset,
+            behavior: 'smooth'
+        });
+        // `offset` is deliberately not a dependency: only an index change should scroll.
+    }, [index]);
 
-    const onWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-        const top = (e.pageY - e.clientY) + (TRIGGER_CONST)
-        const newIndex = findIndex(top);
-        if (newIndex !== currentIndex) {
-            setCurrentIndex(newIndex);
-            onChange(newIndex)
-        }
-    }
+    const value = useMemo<ScrollDetectContextValue>(() => ({ register }), [register]);
 
-
-    return (
-        <div onWheel={onWheel}>
-            {props.children}
-        </div>
-    )
-}
+    return <ScrollDetectContext.Provider value={value}>{children}</ScrollDetectContext.Provider>;
+};
 
 export default ReactScrollDetect;
